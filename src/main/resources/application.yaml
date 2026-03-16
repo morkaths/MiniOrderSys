@@ -1,3 +1,21 @@
 spring:
-  application:
-    name: MiniOrderSys
+    application:
+        name: MiniOrderSys
+    datasource:
+        url: jdbc:h2:mem:miniordersys;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        driver-class-name: org.h2.Driver
+        username: sa
+        password:
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+    h2:
+        console:
+            enabled: true
+            path: /h2-console
+
+app:
+    jwt:
+        secret: this_is_a_demo_secret_key_for_jwt_signing_2026_change_me
+        expiration-ms: 86400000
