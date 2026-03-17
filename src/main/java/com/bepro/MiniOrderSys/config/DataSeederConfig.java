@@ -1,7 +1,7 @@
 package com.bepro.MiniOrderSys.config;
 
 import com.bepro.MiniOrderSys.entity.AppUser;
-import com.bepro.MiniOrderSys.entity.Role;
+import com.bepro.MiniOrderSys.entity.enums.Role;
 import com.bepro.MiniOrderSys.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;

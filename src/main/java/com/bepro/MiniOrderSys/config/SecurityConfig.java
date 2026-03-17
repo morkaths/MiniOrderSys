@@ -1,6 +1,6 @@
 package com.bepro.MiniOrderSys.config;
 
-import com.bepro.MiniOrderSys.entity.Role;
+import com.bepro.MiniOrderSys.entity.enums.Role;
 import com.bepro.MiniOrderSys.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

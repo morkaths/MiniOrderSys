@@ -4,7 +4,7 @@ import com.bepro.MiniOrderSys.dto.request.LoginRequest;
 import com.bepro.MiniOrderSys.dto.request.RegisterRequest;
 import com.bepro.MiniOrderSys.dto.response.AuthResponse;
 import com.bepro.MiniOrderSys.entity.AppUser;
-import com.bepro.MiniOrderSys.entity.Role;
+import com.bepro.MiniOrderSys.entity.enums.Role;
 import com.bepro.MiniOrderSys.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

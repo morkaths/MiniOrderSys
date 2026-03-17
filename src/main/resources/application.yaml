@@ -17,5 +17,5 @@ spring:
 
 app:
     jwt:
-        secret: this_is_a_demo_secret_key_for_jwt_signing_2026_change_me
+        secret: NHAT_TRUONG_DEP_TRAI_VO_DICH_VU_TRU_SIEU_CAP_VIP_PRO_MAX_GALAXY_ULTRA_PLUS_PLUS
         expiration-ms: 86400000
