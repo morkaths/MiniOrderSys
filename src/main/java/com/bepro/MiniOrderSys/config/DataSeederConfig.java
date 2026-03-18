@@ -1,8 +1,11 @@
 package com.bepro.MiniOrderSys.config;
 
 import com.bepro.MiniOrderSys.entity.AppUser;
+import com.bepro.MiniOrderSys.entity.CafeTable;
 import com.bepro.MiniOrderSys.entity.Product;
 import com.bepro.MiniOrderSys.entity.enums.Role;
+import com.bepro.MiniOrderSys.entity.enums.TableStatus;
+import com.bepro.MiniOrderSys.repository.CafeTableRepository;
 import com.bepro.MiniOrderSys.repository.ProductRepository;
 import com.bepro.MiniOrderSys.repository.UserRepository;
 
@@ -20,12 +23,14 @@ public class DataSeederConfig {
   public CommandLineRunner seedDefaultUsers(
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
-      ProductRepository productRepository) {
+      ProductRepository productRepository,
+      CafeTableRepository cafeTableRepository) {
     return args -> {
       createUserIfMissing(userRepository, passwordEncoder, "admin", "admin123", Role.ADMIN);
       createUserIfMissing(userRepository, passwordEncoder, "user", "user123", Role.USER);
 
       seedProductsIfEmpty(productRepository);
+      seedTablesIfEmpty(cafeTableRepository);
     };
   }
 
@@ -77,6 +82,42 @@ public class DataSeederConfig {
         .description("Sua nhieu ca phe it")
         .price(new BigDecimal("32000"))
         .active(true)
+        .build());
+  }
+
+  private void seedTablesIfEmpty(CafeTableRepository cafeTableRepository) {
+    if (cafeTableRepository.count() > 0) {
+      return;
+    }
+
+    cafeTableRepository.save(CafeTable.builder()
+        .tableNumber("A1")
+        .capacity(4)
+        .status(TableStatus.AVAILABLE)
+        .build());
+
+    cafeTableRepository.save(CafeTable.builder()
+        .tableNumber("A2")
+        .capacity(4)
+        .status(TableStatus.AVAILABLE)
+        .build());
+
+    cafeTableRepository.save(CafeTable.builder()
+        .tableNumber("B1")
+        .capacity(2)
+        .status(TableStatus.AVAILABLE)
+        .build());
+
+    cafeTableRepository.save(CafeTable.builder()
+        .tableNumber("B2")
+        .capacity(2)
+        .status(TableStatus.AVAILABLE)
+        .build());
+
+    cafeTableRepository.save(CafeTable.builder()
+        .tableNumber("C1")
+        .capacity(6)
+        .status(TableStatus.AVAILABLE)
         .build());
   }
 }
