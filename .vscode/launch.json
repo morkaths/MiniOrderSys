@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-MiniOrderSysApplication<MiniOrderSys>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.bepro.MiniOrderSys.MiniOrderSysApplication",
+            "projectName": "MiniOrderSys",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

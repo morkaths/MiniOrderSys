@@ -59,7 +59,7 @@ public class OrderService {
 
     return new OrderResponse(
         order.getId(),
-        order.getTableNumber(),
+        order.getTable().getTableNumber(),
         order.getStatus().name(),
         order.getOrderedBy(),
         order.getTotalAmount(),
@@ -84,7 +84,7 @@ public class OrderService {
     }
 
     CafeOrder order = CafeOrder.builder()
-        .tableNumber(tableNumber)
+        .table(table)
         .status(OrderStatus.ORDERED)
         .orderedBy("GUEST")
         .totalAmount(BigDecimal.ZERO)
@@ -181,7 +181,7 @@ public class OrderService {
 
     return new OrderResponse(
         savedOrder.getId(),
-        savedOrder.getTableNumber(),
+        savedOrder.getTable().getTableNumber(),
         savedOrder.getStatus().name(),
         savedOrder.getOrderedBy(),
         savedOrder.getTotalAmount(),
@@ -204,7 +204,7 @@ public class OrderService {
 
     Map<String, Long> groupedByTable = activeOrders.stream()
         .collect(Collectors.groupingBy(
-            CafeOrder::getTableNumber,
+            o -> o.getTable().getTableNumber(),
             LinkedHashMap::new,
             Collectors.counting()));
 
@@ -221,7 +221,7 @@ public class OrderService {
     order.setStatus(request.status());
     CafeOrder updatedOrder = cafeOrderRepository.save(order);
 
-    syncTableStatusAfterOrderUpdate(updatedOrder.getTableNumber(), updatedOrder.getStatus());
+    syncTableStatusAfterOrderUpdate(updatedOrder.getTable().getTableNumber(), updatedOrder.getStatus());
 
     return toResponse(updatedOrder);
   }
@@ -236,11 +236,29 @@ public class OrderService {
         return;
       }
 
-      long activeOrderCount = cafeOrderRepository.countByTableNumberAndStatus(tableNumber, OrderStatus.ORDERED);
+      long activeOrderCount = cafeOrderRepository.countByTableTableNumberIgnoreCaseAndStatus(tableNumber,
+          OrderStatus.ORDERED);
       if (activeOrderCount == 0 && table.getStatus() == TableStatus.OCCUPIED) {
         table.setStatus(TableStatus.AVAILABLE);
         cafeTableRepository.save(table);
       }
     });
+  }
+
+  @Transactional
+  public OrderResponse checkout(String tableNumber) {
+    CafeTable table = cafeTableRepository.findByTableNumberIgnoreCase(tableNumber)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Table not found"));
+
+    CafeOrder activeOrder = cafeOrderRepository.findTopByTableAndStatusOrderByCreatedAtDesc(table, OrderStatus.ORDERED)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No active order for this table"));
+
+    activeOrder.setStatus(OrderStatus.COMPLETED);
+    CafeOrder savedOrder = cafeOrderRepository.save(activeOrder);
+
+    table.setStatus(TableStatus.AVAILABLE);
+    cafeTableRepository.save(table);
+
+    return toResponse(savedOrder);
   }
 }

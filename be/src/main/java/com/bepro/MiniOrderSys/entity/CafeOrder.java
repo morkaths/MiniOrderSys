@@ -40,8 +40,9 @@ public class CafeOrder {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, length = 20)
-  private String tableNumber;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "table_id", nullable = false)
+  private CafeTable table;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
