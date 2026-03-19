@@ -9,5 +9,7 @@ import jakarta.validation.constraints.NotEmpty;
 public record CreateOrderRequest(
     @NotBlank(message = "Table number is required") String tableNumber,
 
-    @NotEmpty(message = "Order items cannot be empty") List<@Valid OrderItemRequest> items) {
+    @NotEmpty(message = "Order items cannot be empty") List<@Valid OrderItemRequest> items,
+
+    String voucherCode) {
 }

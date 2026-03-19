@@ -10,6 +10,8 @@ public record OrderResponse(
     String status,
     String orderedBy,
     BigDecimal totalAmount,
+    Integer discountPercent,
+    BigDecimal discountAmount,
     LocalDateTime createdAt,
     List<OrderItemResponse> items) {
 }

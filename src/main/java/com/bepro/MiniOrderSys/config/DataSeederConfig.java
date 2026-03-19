@@ -3,11 +3,13 @@ package com.bepro.MiniOrderSys.config;
 import com.bepro.MiniOrderSys.entity.AppUser;
 import com.bepro.MiniOrderSys.entity.CafeTable;
 import com.bepro.MiniOrderSys.entity.Product;
+import com.bepro.MiniOrderSys.entity.Voucher;
 import com.bepro.MiniOrderSys.entity.enums.Role;
 import com.bepro.MiniOrderSys.entity.enums.TableStatus;
 import com.bepro.MiniOrderSys.repository.CafeTableRepository;
 import com.bepro.MiniOrderSys.repository.ProductRepository;
 import com.bepro.MiniOrderSys.repository.UserRepository;
+import com.bepro.MiniOrderSys.repository.VoucherRepository;
 
 import java.math.BigDecimal;
 
@@ -24,13 +26,15 @@ public class DataSeederConfig {
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
       ProductRepository productRepository,
-      CafeTableRepository cafeTableRepository) {
+      CafeTableRepository cafeTableRepository,
+      VoucherRepository voucherRepository) {
     return args -> {
       createUserIfMissing(userRepository, passwordEncoder, "admin", "admin123", Role.ADMIN);
       createUserIfMissing(userRepository, passwordEncoder, "user", "user123", Role.USER);
 
       seedProductsIfEmpty(productRepository);
       seedTablesIfEmpty(cafeTableRepository);
+      seedVouchersIfEmpty(voucherRepository);
     };
   }
 
@@ -120,4 +124,22 @@ public class DataSeederConfig {
         .status(TableStatus.AVAILABLE)
         .build());
   }
+
+  private void seedVouchersIfEmpty(VoucherRepository voucherRepository) {
+    if (voucherRepository.count() > 0) {
+      return;
+    }
+
+    for (int percent = 10; percent <= 100; percent += 10) {
+      voucherRepository.save(Voucher.builder()
+          .code("GIAM" + percent)
+          .name("Giam gia " + percent + "%")
+          .description("Phieu giam gia " + percent + "% cho don hang")
+          .amountVnd(BigDecimal.ZERO)
+          .discountPercent(percent)
+          .active(true)
+          .build());
+    }
+  }
 }
+

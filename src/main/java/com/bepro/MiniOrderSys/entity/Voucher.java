@@ -40,6 +40,10 @@ public class Voucher {
   @Column(nullable = false, precision = 12, scale = 2)
   private BigDecimal amountVnd;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private Integer discountPercent = 10;
+
   @Column
   private LocalDateTime expiresAt;
 

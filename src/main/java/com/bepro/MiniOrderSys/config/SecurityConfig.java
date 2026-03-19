@@ -37,6 +37,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**", "/h2-console/**", "/api/products/**", "/api/orders/**", "/api/tables/**")
             .permitAll()
             .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
+            .requestMatchers("/api/vouchers/**").authenticated()
             .requestMatchers("/api/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
             .anyRequest().authenticated())
         .authenticationProvider(authenticationProvider())
