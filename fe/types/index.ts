@@ -95,6 +95,19 @@ export interface TableResponse {
   status: string;
 }
 
+export interface Table { // display on UI
+  id: number;
+  tableNumber: string;
+  capacity: number;
+  status: string; // Enum từ backend, ví dụ: 'AVAILABLE', 'OCCUPIED', 'OUT_OF_SERVICE'
+}
+
+export interface AdminTablePayload { // TableRequest
+  tableNumber: string;
+  capacity: number;
+  status?: string;
+}
+
 export interface ApiError {
   message?: string;
   error?: string;

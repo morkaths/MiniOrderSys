@@ -17,14 +17,16 @@ import { Button } from "@/components/ui/button";
 import { useAdminProducts } from "@/hooks/use-admin-products";
 import { useAdminVouchers } from "@/hooks/use-admin-vouchers";
 import { useAdminHistory } from "@/hooks/use-admin-history";
+import { emptyTableForm, useAdminTables } from "@/hooks/use-admin-tables";
 
 import AdminStatsCards from "./admin-stats-cards";
 import DrinkManagement from "./drink-management";
 import VoucherManagement from "./voucher-management";
 import OrderManagement from "./order-management";
 import InvoiceHistory from "./invoice-history";
+import TableManagement from "./table-management";
 
-type AdminTab = "drinks" | "vouchers" | "orders" | "history";
+type AdminTab = "drinks" | "vouchers" | "orders" | "history" | "tables";
 
 interface ProductFormState {
   name: string;
@@ -88,6 +90,19 @@ export default function AdminDashboard() {
     handleDeleteVoucher,
   } = useAdminVouchers();
 
+  const {
+   isLoadingTables,
+   tables,
+   tableForm,
+   setTableForm,
+   editingTableId,
+   setEditingTableId,
+   isSavingTable,
+   loadTables,
+   handleTableSubmit,
+   handleDeleteTable,
+   } = useAdminTables();
+
   const { 
     invoices, 
     fetchHistory,
@@ -99,9 +114,10 @@ export default function AdminDashboard() {
     await Promise.all([
        loadProducts(),
        loadVouchers(),
-       fetchHistory()
+       fetchHistory(),
+       loadTables()
     ]);
-  }, [loadProducts, loadVouchers, fetchHistory]);
+  }, [loadProducts, loadVouchers, fetchHistory, loadTables]);
 
   useEffect(() => {
     if (hasHydrated && (!isLoggedIn || user?.role !== "ADMIN")) {
@@ -187,6 +203,14 @@ export default function AdminDashboard() {
             <Ticket className="mr-2 h-4 w-4" />
             Vouchers
          </Button>
+         <Button 
+            variant={activeTab === "tables" ? "default" : "ghost"} 
+            className={`rounded-xl px-6 font-bold ${activeTab === "tables" ? "shadow-md" : ""}`}
+            onClick={() => setActiveTab("tables")}
+         >
+            <Ticket className="mr-2 h-4 w-4" />
+            Quản lý bàn
+         </Button>
       </div>
 
       {/* Main Content Areas */}
@@ -238,6 +262,26 @@ export default function AdminDashboard() {
                onDelete={handleDeleteVoucher}
                onReset={() => { setEditingVoucherId(null); setVoucherForm(emptyVoucherForm); }}
                editingId={editingVoucherId}
+            />
+         )}
+         {activeTab === "tables" && (
+            <TableManagement
+               tables={tables}
+               isLoading={isSavingTable}
+               form={tableForm}
+               onFormChange={(val) => setTableForm(prev => ({ ...prev, ...val }))}
+               onSubmit={handleTableSubmit}
+               onEdit={(t) => {
+                  setEditingTableId(t.id);
+                  setTableForm({
+                     tableNumber: t.tableNumber,
+                     capacity: String(t.capacity),
+                     status: t.status
+                  });
+               }}
+               onDelete={handleDeleteTable}
+               onReset={() => { setEditingTableId(null); setTableForm(emptyTableForm); }}
+               editingId={editingTableId}
             />
          )}
       </div>
