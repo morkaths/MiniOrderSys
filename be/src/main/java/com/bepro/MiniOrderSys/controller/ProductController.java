@@ -29,3 +29,24 @@ public class ProductController {
     return productService.getProductById(id);
   }
 }
+
+// public class ProductController {
+
+// private final ProductService productService;
+
+// public ProductController() {
+// this.productService = new ProductService();
+// }
+
+// public List<ProductRespone> getAvailableProducts() {
+// return productService.getAvailableProducts();
+// }
+
+// public ProductRespone getProductById(Long id) {
+// return productService.getProductById(id);
+// }
+// }
+
+// public ProductController(ProductService productService) {
+// this.productService = productService;
+// }

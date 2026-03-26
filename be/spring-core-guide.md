@@ -212,6 +212,22 @@ Mặc định trong project này, bean là singleton:
 - Mỗi type thường chỉ có 1 instance trong context.
 - Controller/Service chia sẻ instance đó trong suốt vòng đời app.
 
+### Lifecycle của Bean
+
+Lifecycle (vòng đời) của một bean trong Spring thường đi theo các bước:
+
+1. Spring tạo instance bean (constructor).
+2. Spring inject dependency vào bean.
+3. Nếu có callback khởi tạo thì chạy (ví dụ `@PostConstruct`, `InitializingBean`, hoặc `initMethod`).
+4. Bean sẵn sàng phục vụ request trong suốt thời gian ứng dụng chạy.
+5. Khi `ApplicationContext` đóng, callback hủy được gọi (ví dụ `@PreDestroy`, `DisposableBean`, hoặc `destroyMethod`).
+
+Trong dự án MiniOrderSys BE hiện tại:
+
+- Các bean như `InvoiceService`, `OrderService`, `VNPayService`, `JwtAuthenticationFilter` đang dùng constructor injection, nên bước tạo instance + inject dependency diễn ra tự động bởi Spring.
+- Chưa khai báo custom lifecycle callback kiểu `@PostConstruct`/`@PreDestroy` trong các class chính, nên vòng đời đang theo luồng mặc định của Spring.
+- Bean `CommandLineRunner seedDefaultUsers(...)` trong `DataSeederConfig` là một ví dụ đặc biệt: logic bên trong sẽ được chạy ở giai đoạn startup sau khi context khởi tạo xong.
+
 ### Ví dụ kết nối bean thực tế
 
 - Bean `PasswordEncoder` được dùng trong `DataSeederConfig` để encode mật khẩu.
@@ -233,3 +249,91 @@ Nếu cần thuyết trình 3-5 phút, bạn có thể đi theo flow:
 2. Context scan tạo bean.
 3. Context inject dependency vào controller/service.
 4. Request vào API sẽ sử dụng các bean đã được wiring sẵn.
+
+---
+
+## Bổ sung: Optional, Lambda, Method Reference
+
+### Optional trong dự án dùng để làm gì?
+
+Trong MiniOrderSys BE, `Optional` được dùng chủ yếu để xử lý kết quả truy vấn có thể rỗng từ repository, tránh `NullPointerException` và làm flow nghiệp vụ rõ ràng hơn.
+
+Một số chỗ điển hình:
+
+- `OrderService#createOrder`: `productRepository.findById(...).orElseThrow(...)` để báo lỗi ngay khi không tìm thấy sản phẩm.
+- `VoucherService#getMyVouchers`: `userRepo.findByUsername(...).orElseThrow(...)` để chặn case user không tồn tại.
+- `DataSeederConfig#createUserIfMissing`: `findByUsername(...).orElseGet(...)` để chỉ tạo user khi chưa có.
+- `VNPayController#createPaymentUrl`: `invoiceRepository.findById(...).orElseThrow(...)` để trả lỗi 404 khi invoice không tồn tại.
+
+Ý nghĩa thực tế:
+
+- Biến trạng thái “có hoặc không có dữ liệu” thành API rõ ràng.
+- Tập trung xử lý lỗi tại điểm truy vấn, giảm kiểm tra `null` thủ công ở nhiều nơi.
+- Code ngắn hơn, dễ đọc hơn cho các luồng nghiệp vụ.
+
+### `map`, `filter` của Optional khác gì của Collection?
+
+`Optional<T>` đại diện cho **tối đa 1 phần tử**.
+
+- `Optional.map(f)`: nếu có giá trị thì biến đổi 1 giá trị đó, nếu rỗng thì vẫn rỗng.
+- `Optional.filter(p)`: nếu có giá trị và thỏa điều kiện thì giữ lại, ngược lại thành rỗng.
+
+`Collection<T>`/`Stream<T>` đại diện cho **0..n phần tử**.
+
+- `Stream.map(f)`: biến đổi từng phần tử trong tập.
+- `Stream.filter(p)`: lọc tập theo điều kiện.
+
+Tóm lại: cùng tên hàm, nhưng ngữ nghĩa khác ở số lượng phần tử xử lý.
+
+- `Optional`: xử lý “có 1 hay không có”.
+- `Collection/Stream`: xử lý “nhiều phần tử”.
+
+Ví dụ so sánh nhanh:
+
+```java
+Optional<String> name = userRepo.findByUsername(username).map(AppUser::getUsername);
+List<String> names = users.stream().map(AppUser::getUsername).toList();
+```
+
+### Lambda trong dự án
+
+Lambda là cách viết ngắn gọn cho functional interface.
+
+Trong dự án có nhiều lambda rõ ràng:
+
+- `orElseThrow(() -> new ResponseStatusException(...))`
+- `.map(item -> new OrderItemResponse(...))`
+- `ifPresent(user -> { order.setUser(user); ... })`
+- Trong `VoucherService`: `Predicate`, `Supplier`, `Function`, `Consumer` đều dùng lambda.
+
+Ưu điểm khi dùng lambda trong BE hiện tại:
+
+- Viết logic ngắn gọn, giảm boilerplate class ẩn danh.
+- Kết hợp tốt với `Optional` và `Stream` để viết pipeline xử lý dữ liệu.
+
+### Method Reference trong dự án
+
+Method reference là cú pháp rút gọn của lambda khi lambda chỉ gọi 1 method có sẵn.
+
+Ví dụ đã có trong dự án:
+
+```java
+.map(this::toUserVoucherResponse)
+.map(this::toResponse)
+```
+
+So với lambda tương đương:
+
+```java
+.map(uv -> toUserVoucherResponse(uv))
+.map(order -> toResponse(order))
+```
+
+Khi nào ưu tiên method reference:
+
+- Khi biểu thức lambda chỉ gọi 1 hàm có sẵn và không thêm xử lý phụ.
+- Giúp code gọn, dễ quét nhanh trong các đoạn stream.
+
+Khi nào giữ lambda:
+
+- Khi cần thêm điều kiện, nhiều bước xử lý, hoặc đặt tên biến trung gian cho dễ hiểu.
